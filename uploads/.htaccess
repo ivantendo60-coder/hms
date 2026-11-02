@@ -1,0 +1,5 @@
+# Block ALL direct web access. Patient photos must be served via
+# pages/patient/photo.php which enforces authentication and role checks.
+Require all denied
+Deny from all
+Options -Indexes

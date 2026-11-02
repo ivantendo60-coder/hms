@@ -1,0 +1,55 @@
+# Security & rewrite rules for MediCare HMS
+Options -Indexes -MultiViews
+ServerSignature Off
+
+# Default document
+DirectoryIndex index.php
+
+# Block access to sensitive files
+<FilesMatch "\.(sql|md|log|ini|env|sh|bak|swp)$">
+  Require all denied
+</FilesMatch>
+
+# Protect config + includes folders from direct access
+RewriteEngine On
+RewriteBase /hms/
+RewriteRule ^config/ - [F,L]
+RewriteRule ^includes/ - [F,L]
+
+# Redirect browser GET requests to extensionless PHP URLs.
+# Keep POST requests on their original URL so form and API submissions are preserved.
+RewriteCond %{THE_REQUEST} \s/+[^?\s]*/index\.php(?:[?\s]) [NC]
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteRule ^index\.php$ /hms/ [R=302,L]
+RewriteCond %{THE_REQUEST} \s/+(.+?)\.php(?:[?\s]) [NC]
+RewriteCond %{REQUEST_METHOD} =GET
+RewriteRule ^(.+)\.php$ /hms/$1 [R=302,L,NE]
+
+# Resolve extensionless URLs to matching PHP files.
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteCond %{REQUEST_FILENAME}.php -f
+RewriteRule ^(.+?)/?$ $1.php [L]
+
+# Security headers
+<IfModule mod_headers.c>
+  Header set X-Content-Type-Options "nosniff"
+  Header set X-Frame-Options "SAMEORIGIN"
+  Header set Referrer-Policy "strict-origin-when-cross-origin"
+  Header set X-XSS-Protection "1; mode=block"
+  Header set Permissions-Policy "geolocation=(), microphone=(), camera=()"
+  Header set X-Permitted-Cross-Domain-Policies "none"
+  Header set Cross-Origin-Opener-Policy "same-origin"
+  Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains" "expr=%{HTTPS} == 'on'"
+</IfModule>
+
+# Force PHP error hiding
+php_flag display_errors off
+
+# Cache static assets
+<IfModule mod_expires.c>
+  ExpiresActive On
+  ExpiresByType image/jpg "access plus 1 month"
+  ExpiresByType image/png "access plus 1 month"
+  ExpiresByType text/css  "access plus 1 week"
+  ExpiresByType application/javascript "access plus 1 week"
+</IfModule>
