@@ -2,7 +2,6 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/audit.php';
-require_once __DIR__ . '/../../includes/upload.php';
 require_role('receptionist');
 
 $id = (int)($_GET['id']??0);
@@ -21,12 +20,6 @@ if ($_SERVER['REQUEST_METHOD']==='POST') {
     $u->execute([$new['full_name'],$new['dob'],$new['gender'],$new['phone'],$new['email'],$new['address'],$new['blood_group'],$new['emergency_contact'],$id]);
     audit_diff($pdo, $id, $p, $new, array_keys($new));
 
-    $photo = handle_photo_upload('photo', $id);
-    if ($photo) {
-      delete_patient_photo($p['photo']);
-      $pdo->prepare("UPDATE patients SET photo=?, photo_mime=? WHERE id=?")->execute([$photo[0], $photo[1], $id]);
-      audit_log($pdo, $id, 'photo_upload', 'photo', $p['photo'], $photo[0]);
-    }
     header('Location: patient_view.php?uid='.urlencode($p['rfid_uid'])); exit;
   } catch(Exception $e){ $err=$e->getMessage(); }
 }
@@ -35,15 +28,10 @@ include __DIR__ . '/../../includes/header.php';
 ?>
 <h3>Edit Patient</h3>
 <?php if($err): ?><div class="alert alert-danger"><?= e($err) ?></div><?php endif; ?>
-<form method="post" enctype="multipart/form-data" class="card p-4 border-0 shadow-sm">
+<form method="post" class="card p-4 border-0 shadow-sm">
   <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
   <div class="row g-3">
-    <div class="col-md-3 text-center">
-      <img src="<?= base_url('pages/patient/photo.php?id='.$p['id']) ?>" class="img-thumbnail mb-2" style="width:140px;height:140px;object-fit:cover">
-      <label class="form-label small">Replace photo</label>
-      <input type="file" name="photo" accept="image/*" class="form-control form-control-sm">
-    </div>
-    <div class="col-md-9">
+    <div class="col-12">
       <div class="row g-3">
         <div class="col-md-8"><label>Full Name</label><input name="full_name" class="form-control" value="<?= e($p['full_name']) ?>"></div>
         <div class="col-md-4"><label>DOB</label><input type="date" name="dob" class="form-control" value="<?= e($p['dob']) ?>"></div>

@@ -35,6 +35,10 @@ $open_link = function($p) use ($role) {
   return 'view.php?uid=' . urlencode($p['rfid_uid']);
 };
 
+$last_rfid_scan_id = (int)$pdo->query('SELECT COALESCE(MAX(id), 0) FROM rfid_scans')->fetchColumn();
+$patient_view_url = $role === 'receptionist'
+  ? base_url('pages/receptionist/patient_view.php')
+  : base_url('pages/patient/view.php');
 $page_title='Find Patient';
 include __DIR__ . '/../../includes/header.php';
 ?>
@@ -42,11 +46,11 @@ include __DIR__ . '/../../includes/header.php';
   <small class="text-muted fs-6">— <?= e(ucfirst($role)) ?> filters</small>
 </h3>
 
-<form class="card border-0 shadow-sm p-3 mb-3">
+<form class="card border-0 shadow-sm p-3 mb-3" data-rfid-search="uid" data-rfid-search-endpoint="<?= base_url('api/rfid_last.php') ?>" data-rfid-search-after="<?= $last_rfid_scan_id ?>" data-rfid-search-redirect="<?= e($patient_view_url) ?>">
   <div class="row g-2">
     <div class="col-md-3"><input name="name"  class="form-control" placeholder="Patient name" value="<?= e($name) ?>"></div>
     <div class="col-md-2"><input name="phone" class="form-control" placeholder="Phone" value="<?= e($phone) ?>"></div>
-    <div class="col-md-2"><input name="uid"   class="form-control" placeholder="RFID UID" value="<?= e($uid) ?>"></div>
+    <div class="col-md-2"><input name="uid"   class="form-control" placeholder="Card Number" value="<?= e($uid) ?>"></div>
     <?php if ($role !== 'receptionist'): ?>
       <div class="col-md-2"><input type="date" name="from" class="form-control" value="<?= e($from) ?>" title="Visit from"></div>
       <div class="col-md-2"><input type="date" name="to"   class="form-control" value="<?= e($to)   ?>" title="Visit to"></div>
@@ -62,19 +66,19 @@ include __DIR__ . '/../../includes/header.php';
       Department filters: search by visit date to find your active patients quickly.
     <?php endif; ?>
   </div>
+  <div class="form-text mt-1" data-rfid-search-status role="status" aria-live="polite">Scan a patient card to retrieve patient information.</div>
 </form>
 
 <?php if ($rows): ?>
 <table class="table bg-white shadow-sm align-middle">
 <thead><tr>
-  <th></th><th>RFID</th><th>Name</th><th>Phone</th>
+  <th>Card Number</th><th>Name</th><th>Phone</th>
   <?php if ($role!=='receptionist'): ?><th>Visits</th><th>Last Visit</th><?php endif; ?>
   <th></th>
 </tr></thead>
 <tbody>
 <?php foreach($rows as $p): ?>
 <tr>
-  <td><img src="<?= base_url('pages/patient/photo.php?id='.$p['id']) ?>" style="width:40px;height:40px;object-fit:cover;border-radius:50%"></td>
   <td><code><?= e($p['rfid_uid']) ?></code></td>
   <td><?= e($p['full_name']) ?><div class="small text-muted"><?= e($p['gender']) ?> • <?= e($p['blood_group']) ?></div></td>
   <td><?= e($p['phone']) ?></td>

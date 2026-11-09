@@ -50,7 +50,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="card border-0 shadow-sm p-3">
       <h5>Top Patients by Visits</h5>
       <table class="table table-sm mb-0">
-        <thead><tr><th>Patient</th><th>RFID</th><th>Visits</th></tr></thead>
+        <thead><tr><th>Patient</th><th>Card Number</th><th>Visits</th></tr></thead>
         <tbody>
           <?php foreach ($topPatients as $row): ?>
             <tr>

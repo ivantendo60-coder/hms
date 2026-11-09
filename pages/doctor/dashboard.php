@@ -36,8 +36,11 @@ include __DIR__ . '/../../includes/header.php';
     </div>
   </div>
   <div class="col-md-4">
-    <img src="<?= base_url('assets/img/doctor.jpg') ?>" class="img-fluid rounded shadow-sm">
-    <a href="<?= base_url('pages/scan.php') ?>" class="btn btn-primary w-100 mt-3"><i class="bi bi-broadcast"></i> Scan Patient Card</a>
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body d-flex align-items-center justify-content-center">
+        <a href="<?= base_url('pages/scan.php') ?>" class="btn btn-primary"><i class="bi bi-broadcast"></i> Scan Patient Card</a>
+      </div>
+    </div>
   </div>
 </div>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

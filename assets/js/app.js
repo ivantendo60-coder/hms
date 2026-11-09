@@ -9,6 +9,61 @@
   });
 })();
 
+(function(){
+  const forms = Array.from(document.querySelectorAll('form[data-rfid-search]'));
+  if (!forms.length) return;
+
+  const endpoint = forms[0].dataset.rfidSearchEndpoint;
+  if (!endpoint) return;
+
+  const updateStatus = (form, message) => {
+    const status = form.querySelector('[data-rfid-search-status]');
+    if (status) status.textContent = message;
+  };
+  let lastScanId = Number(forms[0].dataset.rfidSearchAfter || 0);
+
+  const poll = async () => {
+    try {
+      const response = await fetch(endpoint, {cache: 'no-store'});
+      if (!response.ok) throw new Error('HTTP ' + response.status);
+
+      const scan = await response.json();
+      if (scan.id !== null && Number(scan.id) > lastScanId) {
+        lastScanId = scan.id;
+        if (scan.uid) {
+          forms.forEach((form) => {
+            if (scan.known && form.dataset.rfidSearchRedirect) {
+              const patientUrl = new URL(form.dataset.rfidSearchRedirect, window.location.href);
+              patientUrl.searchParams.set('uid', scan.uid);
+              window.location.assign(patientUrl.toString());
+              return;
+            }
+
+            const field = form.elements.namedItem(form.dataset.rfidSearch);
+            if (!field || !('value' in field)) return;
+
+            field.value = scan.uid;
+            Array.from(form.elements).forEach((control) => {
+              if (control !== field && control.type !== 'hidden' && control.type !== 'submit' && control.type !== 'button') {
+                control.value = '';
+              }
+            });
+            updateStatus(form, 'Patient card scanned. Searching for patient information…');
+            form.requestSubmit();
+          });
+        }
+      }
+      forms.forEach((form) => updateStatus(form, 'Ready to scan a patient card to retrieve patient information.'));
+    } catch (error) {
+      forms.forEach((form) => updateStatus(form, 'Unable to check for card scans. Check the reader connection and try again.'));
+    } finally {
+      window.setTimeout(poll, 1200);
+    }
+  };
+
+  poll();
+})();
+
 document.querySelectorAll('[data-password-toggle]').forEach((button) => {
   button.addEventListener('click', () => {
     const input = document.getElementById(button.dataset.passwordToggle);

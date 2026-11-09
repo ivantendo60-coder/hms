@@ -30,10 +30,10 @@ include __DIR__ . '/../../includes/header.php';
         <h4 class="mb-0"><i class="bi bi-exclamation-triangle text-warning"></i> Unknown RFID Card</h4>
       </div>
       <div class="card-body">
-        <p>This card has never been registered in the system. Please verify the UID with the patient before issuing a new record.</p>
+        <p>This card has never been registered in the system. Please verify the card number with the patient before issuing a new record.</p>
 
         <table class="table table-sm">
-          <tr><th style="width:160px">RFID UID</th><td><code class="fs-5"><?= e($uid) ?></code></td></tr>
+          <tr><th style="width:160px">Card Number</th><td><code class="fs-5"><?= e($uid) ?></code></td></tr>
           <tr><th>Last Scan</th><td><?= e($scan['scanned_at'] ?? 'just now') ?></td></tr>
           <tr><th>Station</th><td><?= e($scan['station'] ?? 'unknown') ?></td></tr>
           <tr><th>Reviewed By</th><td><?= e(current_user()['name']) ?> (Receptionist)</td></tr>

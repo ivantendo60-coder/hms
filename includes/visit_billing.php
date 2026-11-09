@@ -117,6 +117,43 @@ function record_visit_service(PDO $pdo, int $visitId, int $serviceId, int $quant
     }
 }
 
+function record_custom_doctor_service(PDO $pdo, int $visitId, $name, $amount, int $staffId, string $role): void {
+    if ($role !== 'doctor') {
+        throw new RuntimeException('Only doctors can add custom doctor service fees.');
+    }
+    if ($visitId <= 0 || $staffId <= 0) {
+        throw new InvalidArgumentException('Choose a valid visit for this service fee.');
+    }
+
+    $name = trim(billing_string_value($name, 'service name'));
+    if ($name === '' || strlen($name) > 150) {
+        throw new InvalidArgumentException('Enter a service name of 1 to 150 characters.');
+    }
+    $amountCents = billing_amount_cents($amount);
+
+    $pdo->beginTransaction();
+    try {
+        $visitQuery = $pdo->prepare("SELECT id, patient_id FROM visits WHERE id=? AND status='open' FOR UPDATE");
+        $visitQuery->execute([$visitId]);
+        $visit = $visitQuery->fetch();
+        if (!$visit) {
+            throw new RuntimeException('This visit is closed. Refresh the patient record and try again.');
+        }
+
+        $price = format_billing_cents($amountCents);
+        $insert = $pdo->prepare('INSERT INTO visit_services (visit_id, service_id, service_name, department, quantity, unit_price, line_total, recorded_by) VALUES (?, NULL, ?, ?, 1, ?, ?, ?)');
+        $insert->execute([$visitId, $name, $role, $price, $price, $staffId]);
+        invalidate_visit_clearance($pdo, $visitId);
+        audit_log($pdo, (int)$visit['patient_id'], 'visit_service_add', 'service', null, $name . ' x1 (' . $price . ')');
+        $pdo->commit();
+    } catch (Throwable $e) {
+        if ($pdo->inTransaction()) {
+            $pdo->rollBack();
+        }
+        throw $e;
+    }
+}
+
 function record_visit_payment(PDO $pdo, int $visitId, $amount, string $method, ?string $reference, string $collectionPoint, int $staffId, string $role): void {
     $amountCents = billing_amount_cents($amount);
     if ($visitId <= 0 || $staffId <= 0) {

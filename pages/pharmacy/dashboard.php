@@ -20,7 +20,6 @@ include __DIR__ . '/../../includes/header.php';
   <div class="col-md-3"><div class="card card-stat p-3"><small>Awaiting clearance</small><h2><?= $s['clearance'] ?></h2></div></div>
   <div class="col-md-4"><div class="card card-stat p-3"><small>Collected at Pharmacy Today</small><h2 class="text-success">UGX <?= number_format((float)$s['collected'], 2) ?></h2></div></div>
 </div>
-<img src="<?= base_url('assets/img/pharmacy.jpg') ?>" class="img-fluid rounded shadow-sm" style="max-height:240px">
 <div class="mt-3"><a class="btn btn-primary" href="<?= base_url('pages/scan.php') ?>"><i class="bi bi-broadcast"></i> Scan Card</a>
 <a class="btn btn-outline-primary" href="queue.php">Prescription Queue</a>
 <a class="btn btn-success" href="clearance.php">Payment Clearance</a></div>

@@ -30,7 +30,7 @@ include __DIR__ . '/../../includes/header.php';
   <div class="card-body">
     <h5>Recently Registered Patients</h5>
     <table class="table table-hover align-middle">
-      <thead><tr><th>RFID UID</th><th>Name</th><th>Phone</th><th>Visits</th><th></th></tr></thead>
+      <thead><tr><th>Card Number</th><th>Name</th><th>Phone</th><th>Visits</th><th></th></tr></thead>
       <tbody>
       <?php foreach($recent as $p): ?>
         <tr>

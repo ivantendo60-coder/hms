@@ -3,7 +3,6 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/audit.php';
-require_once __DIR__ . '/../../includes/upload.php';
 require_once __DIR__ . '/../../includes/visit_billing.php';
 require_role(['doctor','lab','pharmacy']);
 $uid = strtoupper(trim($_GET['uid']??''));
@@ -22,20 +21,6 @@ function load_visit_records($pdo,$vid){
   $l=$pdo->prepare("SELECT l.*,u.name AS tech FROM lab_tests l LEFT JOIN users u ON u.id=l.lab_tech_id WHERE visit_id=? ORDER BY l.id"); $l->execute([$vid]);
   $r=$pdo->prepare("SELECT pr.*,u.name AS pharmacist FROM prescriptions pr LEFT JOIN users u ON u.id=pr.pharmacist_id WHERE visit_id=? ORDER BY pr.id"); $r->execute([$vid]);
   return ['dx'=>$d->fetchAll(),'lab'=>$l->fetchAll(),'rx'=>$r->fetchAll()];
-}
-
-// Handle photo upload (any clinical role)
-if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='photo') {
-  csrf_check();
-  try {
-    $photo = handle_photo_upload('photo', (int)$p['id']);
-    if ($photo) {
-      delete_patient_photo($p['photo']);
-      $pdo->prepare("UPDATE patients SET photo=?, photo_mime=? WHERE id=?")->execute([$photo[0],$photo[1],$p['id']]);
-      audit_log($pdo, (int)$p['id'], 'photo_upload', 'photo', $p['photo'], $photo[0]);
-    }
-  } catch (Exception $e) { $_SESSION['flash_err']=$e->getMessage(); }
-  header("Location: view.php?uid=$uid"); exit;
 }
 
 // Handle inline adds based on role
@@ -70,6 +55,19 @@ if ($_SERVER['REQUEST_METHOD']==='POST' && $current) {
         (int)$current['id'],
         billing_positive_integer($_POST['service_id'] ?? null, 'service'),
         billing_positive_integer($_POST['quantity'] ?? null, 'quantity', 1000),
+        (int)current_user()['id'],
+        $role
+      );
+    } catch (Throwable $e) {
+      $_SESSION['flash_err'] = $e->getMessage();
+    }
+  } elseif ($action==='add_custom_doctor_service' && $role==='doctor') {
+    try {
+      record_custom_doctor_service(
+        $pdo,
+        (int)$current['id'],
+        $_POST['service_name'] ?? null,
+        $_POST['service_fee'] ?? null,
         (int)current_user()['id'],
         $role
       );
@@ -125,25 +123,14 @@ if ($current) {
 ?>
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body d-flex gap-4 align-items-center">
-    <img src="<?= base_url('pages/patient/photo.php?id='.$p['id']) ?>" class="rounded-circle border" style="width:84px;height:84px;object-fit:cover" alt="patient">
     <div class="flex-grow-1">
       <h3 class="mb-1"><?= e($p['full_name']) ?> <span class="badge bg-primary"><?= e(strtoupper($role)) ?> VIEW</span></h3>
-      <div class="text-muted">RFID <code><?= e($p['rfid_uid']) ?></code> • <?= e($p['gender']) ?> • DOB <?= e($p['dob']) ?> • Blood <?= e($p['blood_group']) ?></div>
+      <div class="text-muted">Card Number <code><?= e($p['rfid_uid']) ?></code> • <?= e($p['gender']) ?> • DOB <?= e($p['dob']) ?> • Blood <?= e($p['blood_group']) ?></div>
       <div class="small mt-1"><i class="bi bi-telephone"></i> <?= e($p['phone']) ?> • <?= e($p['address']) ?></div>
     </div>
     <div class="text-end no-print">
       <a class="btn btn-outline-dark btn-sm" href="print.php?uid=<?= urlencode($uid) ?>" target="_blank"><i class="bi bi-printer"></i> Print PDF</a>
-      <button class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#photoUp"><i class="bi bi-camera"></i> Photo</button>
     </div>
-  </div>
-  <div id="photoUp" class="collapse border-top">
-    <form method="post" enctype="multipart/form-data" class="p-3 d-flex gap-2 align-items-center">
-      <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
-      <input type="hidden" name="action" value="photo">
-      <input type="file" name="photo" accept="image/*" class="form-control form-control-sm" required>
-      <button class="btn btn-sm btn-primary"><i class="bi bi-upload"></i> Upload</button>
-      <span class="small text-muted">Stored securely — accessible only to authenticated staff.</span>
-    </form>
   </div>
 </div>
 <?php if($flashError): ?><div class="alert alert-danger"><?= e($flashError) ?></div><?php endif; ?>
@@ -191,7 +178,7 @@ if ($current) {
       </h5>
 
       <section class="border rounded p-3 my-3">
-        <p class="small text-muted">Each department should add every billable service it provides. Reception sets the rates; adding a new service requires pharmacy to clear the bill again.</p>
+        <p class="small text-muted">Add each billable service provided. Reception-set rates are available below; doctors can also enter a one-off service fee. Any new charge requires pharmacy to clear the bill again.</p>
         <div class="d-flex flex-wrap justify-content-between align-items-center gap-2">
           <h6 class="mb-0">Visit Bill</h6>
           <span class="badge bg-<?= $current['pharmacy_cleared'] ? 'success' : 'warning text-dark' ?>">
@@ -240,8 +227,23 @@ if ($current) {
             <div class="col-md-2"><label for="service-quantity" class="form-label">Quantity</label><input id="service-quantity" name="quantity" type="number" min="1" max="1000" value="1" class="form-control form-control-sm" required></div>
             <div class="col-md-4"><button class="btn btn-sm btn-primary">Add to bill</button></div>
           </form>
-        <?php else: ?>
+        <?php elseif($role!=='doctor'): ?>
           <p class="small text-muted mb-0">Reception has not set up any active <?= e($role) ?> service charges yet.</p>
+        <?php endif; ?>
+        <?php if($role==='doctor'): ?>
+          <form method="post" class="row g-2 align-items-end mt-2">
+            <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
+            <input type="hidden" name="action" value="add_custom_doctor_service">
+            <div class="col-md-6">
+              <label for="custom-service-name" class="form-label">Custom service performed</label>
+              <input id="custom-service-name" name="service_name" maxlength="150" class="form-control form-control-sm" placeholder="Service description" required>
+            </div>
+            <div class="col-md-3">
+              <label for="custom-service-fee" class="form-label">Fee (UGX)</label>
+              <input id="custom-service-fee" name="service_fee" type="number" min="0.01" max="9999999999.99" step="0.01" class="form-control form-control-sm" placeholder="0.00" required>
+            </div>
+            <div class="col-md-3"><button class="btn btn-sm btn-outline-primary">Add custom fee</button></div>
+          </form>
         <?php endif; ?>
       </section>
 

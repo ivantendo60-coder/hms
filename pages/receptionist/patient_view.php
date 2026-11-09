@@ -3,7 +3,6 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/audit.php';
-require_once __DIR__ . '/../../includes/upload.php';
 require_role('receptionist');
 $uid = strtoupper(trim($_GET['uid']??''));
 $stmt = $pdo->prepare("SELECT * FROM patients WHERE rfid_uid=?"); $stmt->execute([$uid]); $p=$stmt->fetch();
@@ -12,20 +11,6 @@ $stmt = $pdo->prepare("SELECT * FROM patients WHERE rfid_uid=?"); $stmt->execute
 if (!$p) {
   header('Location: confirm_rfid.php?uid=' . urlencode($uid));
   exit;
-}
-
-// Photo upload
-if ($_SERVER['REQUEST_METHOD']==='POST' && ($_POST['action']??'')==='photo') {
-  csrf_check();
-  try {
-    $photo = handle_photo_upload('photo', (int)$p['id']);
-    if ($photo) {
-      delete_patient_photo($p['photo']);
-      $pdo->prepare("UPDATE patients SET photo=?, photo_mime=? WHERE id=?")->execute([$photo[0],$photo[1],$p['id']]);
-      audit_log($pdo, (int)$p['id'], 'photo_upload', 'photo', $p['photo'], $photo[0]);
-    }
-  } catch (Exception $e) { $_SESSION['flash_err']=$e->getMessage(); }
-  header('Location: patient_view.php?uid='.urlencode($uid)); exit;
 }
 
 // New visit on check-in
@@ -54,10 +39,9 @@ include __DIR__ . '/../../includes/header.php';
 
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body d-flex gap-4 align-items-center">
-    <img src="<?= base_url('pages/patient/photo.php?id='.$p['id']) ?>" class="rounded-circle border" style="width:96px;height:96px;object-fit:cover" alt="patient">
     <div class="flex-grow-1">
       <h3 class="mb-1"><?= e($p['full_name']) ?></h3>
-      <div class="text-muted">RFID <code><?= e($p['rfid_uid']) ?></code> • <?= e($p['gender']) ?> • <?= e($p['blood_group']) ?></div>
+      <div class="text-muted">Card Number <code><?= e($p['rfid_uid']) ?></code> • <?= e($p['gender']) ?> • <?= e($p['blood_group']) ?></div>
       <div class="small mt-1"><i class="bi bi-telephone"></i> <?= e($p['phone']) ?> &nbsp; <i class="bi bi-envelope"></i> <?= e($p['email']) ?></div>
     </div>
     <div class="text-end">
@@ -65,17 +49,8 @@ include __DIR__ . '/../../includes/header.php';
       <div class="mt-2">
         <a class="btn btn-success btn-sm" href="?uid=<?= urlencode($uid) ?>&checkin=1"><i class="bi bi-clipboard-check"></i> Check-in Visit</a>
         <a class="btn btn-outline-secondary btn-sm" href="edit_patient.php?id=<?= $p['id'] ?>"><i class="bi bi-pencil"></i> Edit</a>
-        <button class="btn btn-outline-primary btn-sm" data-bs-toggle="collapse" data-bs-target="#photoUp"><i class="bi bi-camera"></i> Photo</button>
       </div>
     </div>
-  </div>
-  <div id="photoUp" class="collapse border-top">
-    <form method="post" enctype="multipart/form-data" class="p-3 d-flex gap-2 align-items-center">
-      <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
-      <input type="hidden" name="action" value="photo">
-      <input type="file" name="photo" accept="image/*" class="form-control form-control-sm" required>
-      <button class="btn btn-sm btn-primary"><i class="bi bi-upload"></i> Upload</button>
-    </form>
   </div>
 </div>
 

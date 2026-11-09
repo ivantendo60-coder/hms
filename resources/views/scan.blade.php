@@ -88,7 +88,7 @@
                              data-redirect-unknown="{{ $unknownRedirect ?? url('/pages/receptionist/confirm_rfid.php') }}"></div>
 
                         <form method="get" action="{{ $knownRedirect ?? url('/pages/patient/view.php') }}" class="d-flex flex-wrap justify-content-center gap-2 mt-4">
-                            <input name="uid" class="form-control shadow-sm" style="max-width: 320px;" placeholder="Or enter RFID UID manually">
+                            <input name="uid" class="form-control shadow-sm" style="max-width: 320px;" placeholder="Or enter card number manually">
                             <button class="btn btn-primary px-4"><i class="bi bi-search"></i> Open</button>
                         </form>
                     </div>

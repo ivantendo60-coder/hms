@@ -32,25 +32,36 @@ $unknown_redirect = $role==='receptionist' ? base_url('pages/receptionist/confir
              data-redirect-unknown="<?= $unknown_redirect ?>"></div>
         <hr>
         <form method="get" action="<?= $known_redirect ?>" class="d-flex gap-2 justify-content-center">
-          <input name="uid" class="form-control w-50" placeholder="Or enter RFID UID manually">
+          <input name="uid" class="form-control w-50" placeholder="Or enter card number manually">
           <button class="btn btn-primary"><i class="bi bi-search"></i> Open</button>
         </form>
       </div>
     </div>
   </div>
   <div class="col-md-5">
-    <div class="card border-0 shadow-sm">
-      <div class="card-body">
-        <h5><i class="bi bi-info-circle text-primary"></i> How it works</h5>
-        <ol class="small">
-          <li>Arduino (UNO/ESP8266) + MFRC522 RFID module reads the card UID.</li>
-          <li>It POSTs the UID to <code>/api/rfid_ingest.php</code>.</li>
-          <li>This page polls and auto-opens the patient's profile.</li>
-          <li>If the card is unknown, receptionists are taken to a confirmation screen before registering.</li>
-        </ol>
-        <p class="small text-muted">Wiring &amp; sketch are in the <code>/arduino</code> folder.</p>
+    <aside class="rfid-scan-showcase" aria-label="Contactless patient card scanning">
+      <div class="rfid-scan-stage" aria-hidden="true">
+        <span class="rfid-scan-orbit rfid-scan-orbit-one"></span>
+        <span class="rfid-scan-orbit rfid-scan-orbit-two"></span>
+        <div class="rfid-scan-reader">
+          <span class="rfid-scan-reader-light"></span>
+          <i class="bi bi-wifi"></i>
+        </div>
+        <div class="rfid-scan-card">
+          <span class="rfid-scan-card-mark"><i class="bi bi-plus-lg"></i></span>
+          <span class="rfid-scan-card-lines"><i></i><i></i><i></i></span>
+          <span class="rfid-scan-card-chip"></span>
+        </div>
+        <span class="rfid-scan-beam"></span>
       </div>
-    </div>
+      <div class="rfid-scan-caption">
+        <span class="rfid-scan-caption-icon"><i class="bi bi-person-vcard"></i></span>
+        <div>
+          <h4>Contactless patient lookup</h4>
+          <p>A simple card tap connects your team to the right patient record.</p>
+        </div>
+      </div>
+    </aside>
   </div>
 </div>
 <?php include __DIR__ . '/../includes/footer.php'; ?>

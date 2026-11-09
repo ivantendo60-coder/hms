@@ -1,5 +1,18 @@
 # MediCare HMS — Hospital Management System (PHP + Bootstrap 5 + Arduino RFID)
 
+## Laravel 13 Migration (Staged)
+
+The application is being migrated in stages to Laravel 13. The Laravel entry point currently serves the public landing page; staff authentication, dashboards, patient workflows, billing, and RFID APIs still run in the existing PHP application. The root XAMPP entry point remains unchanged until those protected workflows have Laravel replacements.
+
+Laravel 13 requires PHP 8.3 or later. To run the migrated routes locally:
+
+1. Use PHP 8.3+ on the command line and install Composer dependencies with `composer install`.
+2. Copy `.env.example` to `.env`, then set the database values for the existing `hms_db` database and generate a key with `php artisan key:generate`.
+3. Keep `LEGACY_APP_URL` and `ASSET_URL` pointed at the existing HMS installation while legacy login and static assets are still in use.
+4. Start Laravel with `php artisan serve --port=8000` and open `http://127.0.0.1:8000`.
+
+No Laravel database migrations are run during setup; the current SQL schema and patient data are preserved. Do not point Apache's document root at `public/` or replace the current root entry point until the remaining legacy modules have been migrated and verified.
+
 ## Quick Install (XAMPP)
 1. Copy the `hms` folder into `C:\xampp\htdocs\` (so the URL becomes `http://localhost/hms`).
 2. Start Apache + MySQL from the XAMPP Control Panel.

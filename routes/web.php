@@ -1,6 +1,11 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\RfidScanController;
 
-Route::get('/rfid-scan', [RfidScanController::class, 'index'])->name('rfid.scan');
+Route::view('/', 'home')->name('home');
+
+Route::get('/rfid-scan', function () {
+    $legacyUrl = rtrim((string) config('app.legacy_url'), '/');
+
+    return redirect()->away($legacyUrl . '/pages/scan.php');
+})->name('rfid.scan');

@@ -24,7 +24,7 @@ include __DIR__ . '/../../includes/header.php';
   <p class="mb-1">Charges: UGX <?= number_format($billing['total_cents'] / 100, 2) ?> · Paid: UGX <?= number_format($billing['paid_cents'] / 100, 2) ?> · Balance: UGX <?= number_format($billing['balance_cents'] / 100, 2) ?></p>
   <p class="mb-0">Pharmacy clearance: <?= $v['pharmacy_cleared'] ? 'Cleared' : 'Pending' ?></p>
 </div>
-<p><strong>Patient:</strong> <?= e($p['full_name']) ?> • RFID <code><?= e($uid) ?></code></p>
+<p><strong>Patient:</strong> <?= e($p['full_name']) ?> • Card Number <code><?= e($uid) ?></code></p>
 <h5 class="text-primary mt-3">Diagnoses</h5>
 <?php foreach($dx as $d): ?><div class="border rounded p-2 mb-2"><strong>Dr <?= e($d['doctor']) ?></strong> — <?= e($d['diagnosis']) ?><div class="small">Symptoms: <?= e($d['symptoms']) ?> • Tx: <?= e($d['treatment']) ?></div><div class="small text-muted"><?= e($d['notes']) ?></div></div><?php endforeach; ?>
 <h5 class="text-primary mt-3">Lab</h5>
