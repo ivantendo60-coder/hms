@@ -10,6 +10,41 @@
 })();
 
 (function(){
+  const installButton = document.getElementById('install-app-button');
+  const helpDialog = document.getElementById('install-app-help');
+  if (!installButton) return;
+
+  if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    installButton.classList.add('d-none');
+    return;
+  }
+
+  let installPrompt = null;
+  window.addEventListener('beforeinstallprompt', (event) => {
+    event.preventDefault();
+    installPrompt = event;
+  });
+
+  installButton.addEventListener('click', async () => {
+    if (!window.isSecureContext || !installPrompt) {
+      if (helpDialog && !helpDialog.open) helpDialog.showModal();
+      return;
+    }
+
+    installPrompt.prompt();
+    const choice = await installPrompt.userChoice;
+    installPrompt = null;
+    if (choice.outcome === 'accepted') {
+      installButton.classList.add('d-none');
+    }
+  });
+
+  window.addEventListener('appinstalled', () => {
+    installButton.classList.add('d-none');
+  });
+})();
+
+(function(){
   const forms = Array.from(document.querySelectorAll('form[data-rfid-search]'));
   if (!forms.length) return;
 

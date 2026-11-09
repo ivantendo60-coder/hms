@@ -14,7 +14,13 @@ close_session();
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title><?= isset($page_title)?e($page_title).' • ':'' ?>MediCare HMS</title>
+<meta name="theme-color" content="#355cff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="MediCare HMS">
+<link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
 <link rel="icon" href="<?= base_url('assets/img/logo.png') ?>">
+<link rel="apple-touch-icon" href="<?= base_url('assets/img/pwa-192.png') ?>">
 <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
 <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -27,8 +33,11 @@ close_session();
       <img src="<?= base_url('assets/img/logo.png') ?>" width="32" height="32" alt="logo">
       <strong>MediCare HMS</strong>
     </a>
+    <div class="navbar-actions d-flex align-items-center gap-3 ms-auto text-white">
+      <button id="install-app-button" class="btn btn-outline-light btn-sm" type="button" aria-haspopup="dialog">
+        <i class="bi bi-download"></i> Install app
+      </button>
     <?php if ($showAuthenticatedHeader): ?>
-    <div class="d-flex align-items-center gap-3 ms-auto text-white">
       <span class="badge bg-light text-primary text-uppercase"><?= e($u['role']) ?></span>
       <div class="d-flex align-items-center gap-2">
         <img src="<?= base_url('pages/admin/staff_photo.php?id=' . intval($u['id'])) ?>" class="avatar" alt="Profile">
@@ -38,10 +47,25 @@ close_session();
         <input type="hidden" name="csrf" value="<?= e(csrf_token()) ?>">
         <button class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Logout</button>
       </form>
-    </div>
     <?php endif; ?>
+    </div>
   </div>
 </nav>
+<dialog id="install-app-help" class="pwa-install-dialog" aria-labelledby="install-app-title">
+  <div class="pwa-install-dialog-content">
+    <h2 id="install-app-title">Install MediCare HMS</h2>
+    <p>Install HMS from your browser to open it in its own app window and add a desktop shortcut.</p>
+    <ol>
+      <li>In Microsoft Edge, open <strong>Settings and more (…)</strong>, then <strong>Apps</strong> → <strong>Install this site as an app</strong>.</li>
+      <li>In Google Chrome, open <strong>Customize and control Chrome (⋮)</strong>, then choose <strong>Install MediCare HMS</strong> or <strong>Save and share</strong> → <strong>Install page as app</strong>.</li>
+      <li>Confirm installation and choose to create a desktop shortcut if offered.</li>
+    </ol>
+    <p class="pwa-install-note">Apache and MySQL must be running in XAMPP for this local installation to connect.</p>
+    <form method="dialog">
+      <button class="btn btn-primary" type="submit">Close</button>
+    </form>
+  </div>
+</dialog>
 <div class="<?= $showAuthenticatedHeader ? 'app-shell' : 'public-shell' ?>">
 <?php if ($showAuthenticatedHeader): include __DIR__ . '/sidebar.php'; endif; ?>
 <main class="<?= $showAuthenticatedHeader ? 'app-main' : ($isLoginPage ? 'auth-main' : 'public-main') ?>">

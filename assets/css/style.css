@@ -216,6 +216,45 @@ main.flex-grow-1 {
   border-color: rgba(255, 255, 255, 0.8);
 }
 
+.navbar #install-app-button {
+  white-space: nowrap;
+}
+
+.pwa-install-dialog {
+  width: min(94vw, 36rem);
+  max-width: 36rem;
+  padding: 0;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  box-shadow: 0 24px 70px rgba(16, 23, 42, 0.28);
+}
+
+.pwa-install-dialog::backdrop {
+  background: rgba(16, 23, 42, 0.58);
+  backdrop-filter: blur(3px);
+}
+
+.pwa-install-dialog-content {
+  padding: clamp(1.25rem, 4vw, 2rem);
+}
+
+.pwa-install-dialog-content h2 {
+  margin-bottom: 0.75rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+}
+
+.pwa-install-dialog-content li {
+  margin-bottom: 0.65rem;
+}
+
+.pwa-install-note {
+  padding: 0.8rem 1rem;
+  background: var(--surface-soft);
+  border-radius: 10px;
+}
+
 .app-shell {
   display: flex;
   min-height: calc(100vh - 82px);
@@ -1358,6 +1397,16 @@ footer {
 @media (max-width: 767.98px) {
   .navbar {
     padding: 0.6rem 0.9rem;
+  }
+
+  .navbar .container-fluid {
+    flex-wrap: wrap;
+  }
+
+  .navbar .navbar-actions {
+    width: 100%;
+    justify-content: flex-end;
+    padding-top: 0.35rem;
   }
 
   .navbar-brand img {

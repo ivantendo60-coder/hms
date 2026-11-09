@@ -23,6 +23,11 @@ No Laravel database migrations are run during setup; the current SQL schema and 
 
 For deployment, configure `HMS_DB_HOST`, `HMS_DB_NAME`, `HMS_DB_USER`, and `HMS_DB_PASS` in the Apache/PHP environment and use a dedicated MySQL account with only the permissions the application needs. The built-in `root`/empty-password defaults are for local XAMPP development only.
 
+## Install as a Desktop App
+On a supported, secure origin, open the HMS in Microsoft Edge or Google Chrome and select **Install app** in the top navigation. Confirm the browser's install prompt and choose the desktop shortcut option if offered. The installed app opens in its own window without normal browser tabs. If the install prompt is unavailable, the button shows the browser's manual installation steps.
+
+For a local XAMPP installation, use `http://localhost/hms`; browsers treat localhost as a secure origin. Apache and MySQL must still be running in XAMPP, and the PWA requires a network connection to the HMS server. The service worker deliberately does not cache pages or API responses, so confidential patient information is not stored for offline use. For other devices or production deployments, serve HMS over HTTPS.
+
 ## Default Logins
 | Role          | Email                  | Temporary password |
 |---------------|------------------------|-----------|

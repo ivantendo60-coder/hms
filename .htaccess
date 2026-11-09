@@ -53,3 +53,16 @@ php_flag display_errors off
   ExpiresByType text/css  "access plus 1 week"
   ExpiresByType application/javascript "access plus 1 week"
 </IfModule>
+
+<IfModule mod_mime.c>
+  AddType application/manifest+json .webmanifest
+</IfModule>
+
+<IfModule mod_headers.c>
+  <Files "service-worker.js">
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+  </Files>
+  <Files "manifest.webmanifest">
+    Header set Cache-Control "no-cache"
+  </Files>
+</IfModule>
