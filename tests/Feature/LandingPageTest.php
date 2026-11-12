@@ -11,6 +11,7 @@ class LandingPageTest extends TestCase
         $response = $this->get('/');
 
         $response->assertOk();
+        $response->assertSee('myPatient HMS');
         $response->assertSee('Better care starts with a');
         $response->assertSee('Support for every step of care');
         $response->assertSee('Hospital departments');

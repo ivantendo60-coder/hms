@@ -51,12 +51,12 @@ $page_title='Login';
 include __DIR__ . '/../../includes/header.php';
 ?>
 <div class="login-layout">
-  <section class="login-intro" aria-label="MediCare HMS">
+  <section class="login-intro" aria-label="myPatient HMS">
     <div class="login-intro-art" aria-hidden="true"></div>
     <div class="login-intro-content">
       <a class="login-brand" href="<?= base_url('index.php') ?>">
         <img src="<?= base_url('assets/img/logo.png') ?>" alt="">
-        <span>MediCare <strong>HMS</strong></span>
+        <span>myPatient <strong>HMS</strong></span>
       </a>
       <div class="login-welcome">
         <span class="login-eyebrow"><span class="login-live-dot"></span> HOSPITAL OPERATIONS PORTAL</span>
@@ -76,7 +76,7 @@ include __DIR__ . '/../../includes/header.php';
     <div class="login-form-wrap">
       <div class="login-mobile-brand">
         <img src="<?= base_url('assets/img/logo.png') ?>" alt="">
-        <span>MediCare <strong>HMS</strong></span>
+        <span>myPatient <strong>HMS</strong></span>
       </div>
       <div class="login-form-heading">
         <span class="login-icon"><i class="bi bi-person-lock" aria-hidden="true"></i></span>

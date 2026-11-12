@@ -1,5 +1,5 @@
 /*
-  MediCare HMS — Arduino RFID Reader (MFRC522)
+  myPatient HMS — Arduino RFID Reader (MFRC522)
   Hardware: Arduino UNO + MFRC522 RFID module + ESP8266/Ethernet OR PC via Serial
   Wiring (UNO):
     SDA  -> D10
@@ -100,7 +100,7 @@ void setup() {
   Serial.begin(9600);
   SPI.begin();
   rfid.PCD_Init();
-  Serial.println("MediCare RFID reader ready.");
+  Serial.println("myPatient RFID reader ready.");
   #ifdef WIFI_MODE
   connectWiFi();
   #endif

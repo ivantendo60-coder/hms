@@ -1,4 +1,4 @@
-# Security & rewrite rules for MediCare HMS
+# Security & rewrite rules for myPatient HMS
 Options -Indexes -MultiViews
 ServerSignature Off
 

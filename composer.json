@@ -2,7 +2,7 @@
     "$schema": "https://getcomposer.org/schema.json",
     "name": "hms/management-system",
     "type": "project",
-    "description": "MediCare HMS built with Laravel",
+    "description": "myPatient HMS built with Laravel",
     "license": "proprietary",
     "require": {
         "php": "^8.3",

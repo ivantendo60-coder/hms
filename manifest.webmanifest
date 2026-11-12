@@ -1,7 +1,7 @@
 {
   "id": "./",
-  "name": "MediCare Hospital Management System",
-  "short_name": "MediCare HMS",
+  "name": "myPatient Hospital Management System",
+  "short_name": "myPatient HMS",
   "description": "A staff workspace for secure hospital operations and patient care.",
   "start_url": "./",
   "scope": "./",

@@ -5,7 +5,7 @@ header('Content-Type: application/json');
 
 echo json_encode([
     'ok' => true,
-    'service' => 'MediCare HMS RFID ingest',
+    'service' => 'myPatient HMS RFID ingest',
     'endpoint' => '/api/rfid_health.php',
     'time' => date('c'),
 ]);

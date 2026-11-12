@@ -13,11 +13,11 @@ close_session();
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title><?= isset($page_title)?e($page_title).' • ':'' ?>MediCare HMS</title>
+<title><?= isset($page_title)?e($page_title).' • ':'' ?>myPatient HMS</title>
 <meta name="theme-color" content="#355cff">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="MediCare HMS">
+<meta name="apple-mobile-web-app-title" content="myPatient HMS">
 <link rel="manifest" href="<?= base_url('manifest.webmanifest') ?>">
 <link rel="icon" href="<?= base_url('assets/img/logo.png') ?>">
 <link rel="apple-touch-icon" href="<?= base_url('assets/img/pwa-192.png') ?>">
@@ -31,7 +31,7 @@ close_session();
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="<?= base_url('index.php') ?>">
       <img src="<?= base_url('assets/img/logo.png') ?>" width="32" height="32" alt="logo">
-      <strong>MediCare HMS</strong>
+      <strong>myPatient HMS</strong>
     </a>
     <div class="navbar-actions d-flex align-items-center gap-3 ms-auto text-white">
       <button id="install-app-button" class="btn btn-outline-light btn-sm" type="button" aria-haspopup="dialog">
@@ -53,11 +53,11 @@ close_session();
 </nav>
 <dialog id="install-app-help" class="pwa-install-dialog" aria-labelledby="install-app-title">
   <div class="pwa-install-dialog-content">
-    <h2 id="install-app-title">Install MediCare HMS</h2>
+    <h2 id="install-app-title">Install myPatient HMS</h2>
     <p>Install HMS from your browser to open it in its own app window and add a desktop shortcut.</p>
     <ol>
       <li>In Microsoft Edge, open <strong>Settings and more (…)</strong>, then <strong>Apps</strong> → <strong>Install this site as an app</strong>.</li>
-      <li>In Google Chrome, open <strong>Customize and control Chrome (⋮)</strong>, then choose <strong>Install MediCare HMS</strong> or <strong>Save and share</strong> → <strong>Install page as app</strong>.</li>
+      <li>In Google Chrome, open <strong>Customize and control Chrome (⋮)</strong>, then choose <strong>Install myPatient HMS</strong> or <strong>Save and share</strong> → <strong>Install page as app</strong>.</li>
       <li>Confirm installation and choose to create a desktop shortcut if offered.</li>
     </ol>
     <p class="pwa-install-note">Apache and MySQL must be running in XAMPP for this local installation to connect.</p>

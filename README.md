@@ -1,4 +1,4 @@
-# MediCare HMS — Hospital Management System (PHP + Bootstrap 5 + Arduino RFID)
+# myPatient HMS — Hospital Management System (PHP + Bootstrap 5 + Arduino RFID)
 
 ## Laravel 13 Migration (Staged)
 

@@ -43,7 +43,7 @@ else { $vs=$pdo->prepare("SELECT * FROM visits WHERE patient_id=? ORDER BY visit
 </head><body onload="window.print()">
 <header class="report-header">
   <div>
-    <h1>MediCare Hospital</h1>
+    <h1>myPatient Hospital</h1>
     <p>Medical Report</p>
   </div>
   <div class="muted">Generated <?= date('Y-m-d H:i') ?></div>
@@ -86,6 +86,6 @@ else { $vs=$pdo->prepare("SELECT * FROM visits WHERE patient_id=? ORDER BY visit
   </div>
 </section>
 <?php endforeach; ?>
-<footer class="report-footer">Confidential patient information · MediCare Hospital</footer>
+<footer class="report-footer">Confidential patient information · myPatient Hospital</footer>
 <button class="no-print" onclick="window.print()">Print / Save as PDF</button>
 </body></html>

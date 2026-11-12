@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>MediCare HMS</title>
+  <title>myPatient HMS</title>
   <link rel="icon" href="{{ asset('assets/img/logo.png') }}">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
@@ -14,7 +14,7 @@
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}">
       <img src="{{ asset('assets/img/logo.png') }}" width="44" height="44" alt="">
-      <strong>MediCare HMS</strong>
+      <strong>myPatient HMS</strong>
     </a>
   </div>
 </nav>
@@ -92,6 +92,6 @@
     </section>
   </div>
 </main>
-<footer class="text-center text-muted py-3 small border-top">© {{ date('Y') }} MediCare HMS</footer>
+<footer class="text-center text-muted py-3 small border-top">© {{ date('Y') }} myPatient HMS</footer>
 </body>
 </html>
