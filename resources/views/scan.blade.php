@@ -84,6 +84,7 @@
                         <div id="rfid-listener"
                              data-endpoint="{{ url('/api/rfid_last.php') }}"
                              data-bridge-endpoint="{{ url('/api/rfid_bridge.php') }}"
+                             data-csrf="{{ csrf_token() }}"
                              data-redirect-known="{{ $knownRedirect ?? url('/pages/patient/view.php') }}"
                              data-redirect-unknown="{{ $unknownRedirect ?? url('/pages/receptionist/confirm_rfid.php') }}"></div>
 
@@ -155,18 +156,27 @@
                 }
             };
 
-            const getBridgeUrl = (action) => {
-                const params = new URLSearchParams({ action });
+            const getBridgeRequest = (action) => {
+                const params = new URLSearchParams({ action, csrf: el.dataset.csrf || '' });
                 if (portInput && portInput.value.trim()) {
                     params.set('port', portInput.value.trim());
                 }
-                return (el.dataset.bridgeEndpoint || '/api/rfid_bridge.php') + '?' + params.toString();
+                return {
+                    base: el.dataset.bridgeEndpoint || '/api/rfid_bridge.php',
+                    params
+                };
             };
 
             const checkBridge = async () => {
                 setBridgeMessage('Checking the Arduino bridge…');
                 try {
-                    const response = await fetch(getBridgeUrl('check'), { cache: 'no-store' });
+                    const request = getBridgeRequest('check');
+                    const response = await fetch(request.base, {
+                        method: 'POST',
+                        cache: 'no-store',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: request.params
+                    });
                     const data = await response.json();
                     if (data.ok) {
                         setBridgeMessage(data.message || 'The bridge is responding.', 'success');
@@ -200,7 +210,13 @@
             const startBridge = async () => {
                 setBridgeMessage('Connecting the board…');
                 try {
-                    const response = await fetch(getBridgeUrl('start'), { cache: 'no-store' });
+                    const request = getBridgeRequest('start');
+                    const response = await fetch(request.base, {
+                        method: 'POST',
+                        cache: 'no-store',
+                        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+                        body: request.params
+                    });
                     const data = await response.json();
                     if (data.ok) {
                         setBridgeMessage(data.message || 'Bridge start command sent.', 'success');

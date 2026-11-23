@@ -15,5 +15,8 @@ class LandingPageTest extends TestCase
         $response->assertSee('Better care starts with a');
         $response->assertSee('Support for every step of care');
         $response->assertSee('Hospital departments');
+        $response->assertSee('Powered by');
+        $response->assertSee('alt="Irium Technologies"', false);
+        $response->assertSee('irium-technologies.png');
     }
 }

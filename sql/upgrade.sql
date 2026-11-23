@@ -106,6 +106,10 @@ CREATE TABLE IF NOT EXISTS staff_payments (
   currency VARCHAR(10) NOT NULL DEFAULT 'UGX',
   provider VARCHAR(20) NOT NULL,
   provider_account VARCHAR(100) NOT NULL,
+  provider_reference VARCHAR(100) NULL,
+  gateway_response TEXT NULL,
+  processed_at TIMESTAMP NULL,
+  payout_account_id INT NULL,
   initiated_by INT NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'queued',
   notes TEXT,
@@ -127,4 +131,34 @@ CREATE TABLE IF NOT EXISTS payout_accounts (
   notes TEXT,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS appointments (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  patient_id INT NOT NULL,
+  doctor_id INT NULL,
+  appointment_at DATETIME NOT NULL,
+  reason VARCHAR(255),
+  status ENUM('scheduled','arrived','completed','cancelled') NOT NULL DEFAULT 'scheduled',
+  created_by INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  INDEX idx_appointments_time (appointment_at, status),
+  FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+  FOREIGN KEY (doctor_id) REFERENCES users(id) ON DELETE SET NULL,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
+);
+
+CREATE TABLE IF NOT EXISTS patient_portal_tokens (
+  id INT AUTO_INCREMENT PRIMARY KEY,
+  patient_id INT NOT NULL,
+  token_hash CHAR(64) NOT NULL,
+  expires_at DATETIME NOT NULL,
+  revoked_at DATETIME NULL,
+  created_by INT NULL,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY uniq_portal_token_hash (token_hash),
+  INDEX idx_portal_patient (patient_id, revoked_at, expires_at),
+  FOREIGN KEY (patient_id) REFERENCES patients(id) ON DELETE CASCADE,
+  FOREIGN KEY (created_by) REFERENCES users(id) ON DELETE SET NULL
 );

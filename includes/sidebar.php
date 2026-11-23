@@ -15,12 +15,14 @@
       <li><a class="nav-link text-white" href="<?= base_url('pages/admin/staff_activity.php') ?>"><i class="bi bi-person-lines-fill"></i> Staff Patient Activity</a></li>
       <li><a class="nav-link text-white" href="<?= base_url('pages/admin/passwords.php') ?>"><i class="bi bi-key"></i> Password Manager</a></li>
       <li><a class="nav-link text-white" href="<?= base_url('pages/admin/dashboard.php') ?>"><i class="bi bi-bar-chart-line"></i> Department Reports</a></li>
+      <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/appointments.php') ?>"><i class="bi bi-calendar2-check"></i> Appointments</a></li>
     <?php elseif ($role==='receptionist'): ?>
       <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/patients.php') ?>"><i class="bi bi-people"></i> Patients</a></li>
       <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/add_patient.php') ?>"><i class="bi bi-person-plus"></i> Add Patient</a></li>
       <li><a class="nav-link text-white" href="<?= base_url('pages/patient/search.php') ?>"><i class="bi bi-search"></i> Find Patient</a></li>
       <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/charges.php') ?>"><i class="bi bi-tags"></i> Service Charges</a></li>
       <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/payments.php') ?>"><i class="bi bi-cash-coin"></i> Outpatient Payments</a></li>
+      <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/appointments.php') ?>"><i class="bi bi-calendar2-check"></i> Appointments</a></li>
     <?php else: ?>
       <li><a class="nav-link text-white" href="<?= base_url('pages/patient/search.php') ?>"><i class="bi bi-search"></i> Find Patient</a></li>
     <?php endif; ?>
@@ -28,6 +30,7 @@
     <?php endif; ?>
     <?php if ($role==='doctor'): ?>
       <li><a class="nav-link text-white" href="<?= base_url('pages/doctor/visits.php') ?>"><i class="bi bi-clipboard2-pulse"></i> Today's Visits</a></li>
+      <li><a class="nav-link text-white" href="<?= base_url('pages/receptionist/appointments.php') ?>"><i class="bi bi-calendar2-check"></i> Appointments</a></li>
     <?php endif; ?>
     <?php if ($role==='lab'): ?>
       <li><a class="nav-link text-white" href="<?= base_url('pages/lab/queue.php') ?>"><i class="bi bi-eyedropper"></i> Lab Queue</a></li>

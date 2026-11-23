@@ -198,6 +198,7 @@ main.flex-grow-1 {
   background: #fff;
   border-radius: 14px;
   box-shadow: 0 5px 15px rgba(12, 21, 50, 0.2);
+  object-fit: contain;
 }
 
 .navbar > .container-fluid > .d-flex {
@@ -218,41 +219,6 @@ main.flex-grow-1 {
 
 .navbar #install-app-button {
   white-space: nowrap;
-}
-
-.pwa-install-dialog {
-  width: min(94vw, 36rem);
-  max-width: 36rem;
-  padding: 0;
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  box-shadow: 0 24px 70px rgba(16, 23, 42, 0.28);
-}
-
-.pwa-install-dialog::backdrop {
-  background: rgba(16, 23, 42, 0.58);
-  backdrop-filter: blur(3px);
-}
-
-.pwa-install-dialog-content {
-  padding: clamp(1.25rem, 4vw, 2rem);
-}
-
-.pwa-install-dialog-content h2 {
-  margin-bottom: 0.75rem;
-  font-size: 1.4rem;
-  font-weight: 800;
-}
-
-.pwa-install-dialog-content li {
-  margin-bottom: 0.65rem;
-}
-
-.pwa-install-note {
-  padding: 0.8rem 1rem;
-  background: var(--surface-soft);
-  border-radius: 10px;
 }
 
 .app-shell {
@@ -1147,6 +1113,23 @@ a:focus-visible {
 footer {
   background: var(--surface);
   border-color: var(--line) !important;
+}
+
+.site-footer-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+}
+
+.site-footer-brand img {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
+.site-footer-copyright {
+  margin-top: 0.25rem;
 }
 
 .pagination {

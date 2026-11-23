@@ -40,6 +40,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
   if ($action === 'delete') {
     $id = (int)($_POST['id'] ?? 0);
     if ($id > 0) {
+      $pdo->prepare('UPDATE staff_payments SET payout_account_id=NULL WHERE payout_account_id=?')->execute([$id]);
       $pdo->prepare('DELETE FROM payout_accounts WHERE id=?')->execute([$id]);
       $_SESSION['flash_msg'] = 'Payout account deleted.';
     }

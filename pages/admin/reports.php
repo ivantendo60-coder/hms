@@ -17,9 +17,38 @@ $revenueByRole = $pdo->query("SELECT COALESCE(u.role, vp.collection_point) AS ro
 $topPatients = $pdo->query("SELECT p.full_name, p.rfid_uid, COUNT(v.id) AS visits FROM patients p LEFT JOIN visits v ON v.patient_id=p.id GROUP BY p.id ORDER BY visits DESC LIMIT 10")->fetchAll();
 
 $visitStatus = $pdo->query("SELECT status, COUNT(*) AS cnt FROM visits GROUP BY status")->fetchAll();
+
+if (($_GET['export'] ?? '') === 'csv') {
+  header('Content-Type: text/csv; charset=utf-8');
+  header('Content-Disposition: attachment; filename="hospital_reports.csv"');
+  $out = fopen('php://output', 'w');
+  fputcsv($out, ['Hospital Report Export', date('Y-m-d H:i:s')]);
+  fputcsv($out, []);
+  fputcsv($out, ['Patient Growth']);
+  fputcsv($out, ['Month', 'Patients']);
+  foreach ($monthlyPatients as $row) {
+    fputcsv($out, [$row['month'], $row['cnt']]);
+  }
+  fputcsv($out, []);
+  fputcsv($out, ['Payments by Collection Staff']);
+  fputcsv($out, ['Role', 'Visits', 'Revenue']);
+  foreach ($revenueByRole as $row) {
+    fputcsv($out, [$row['role'], $row['visits'], $row['revenue']]);
+  }
+  fputcsv($out, []);
+  fputcsv($out, ['Top Patients']);
+  fputcsv($out, ['Patient', 'Card Number', 'Visits']);
+  foreach ($topPatients as $row) {
+    fputcsv($out, [$row['full_name'], $row['rfid_uid'], $row['visits']]);
+  }
+  fclose($out);
+  exit;
+}
+
 include __DIR__ . '/../../includes/header.php';
 ?>
 <h3><i class="bi bi-graph-up text-primary"></i> Hospital Reports</h3>
+<div class="text-end mb-2"><a class="btn btn-outline-success btn-sm" href="?export=csv"><i class="bi bi-download"></i> Export CSV</a></div>
 <div class="row g-3 my-3">
   <div class="col-md-4"><div class="card card-stat p-3"><small class="text-muted">Last 6 Months Patients</small><h2><?= array_sum(array_column($monthlyPatients, 'cnt')) ?></h2></div></div>
   <div class="col-md-4"><div class="card card-stat p-3"><small class="text-muted">Patient Payments Collected</small><h2>UGX <?= number_format((float)array_sum(array_column($revenueByRole, 'revenue')), 2) ?></h2></div></div>

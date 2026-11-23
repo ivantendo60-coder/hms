@@ -14,6 +14,7 @@ include __DIR__ . '/../../includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-3">
   <h3><i class="bi bi-clipboard-heart text-primary"></i> Reception Desk</h3>
+  <span id="reception-live-status" class="badge bg-primary-subtle text-primary-emphasis">Live queue</span>
   <div class="d-flex gap-2">
     <a href="<?= base_url('pages/scan.php') ?>" class="btn btn-outline-primary"><i class="bi bi-broadcast"></i> Scan RFID</a>
     <a href="add_patient.php" class="btn btn-primary"><i class="bi bi-person-plus"></i> New Patient</a>
@@ -45,4 +46,15 @@ include __DIR__ . '/../../includes/header.php';
     </table>
   </div>
 </div>
+<script>
+setInterval(async () => {
+  try {
+    const r = await fetch('<?= base_url('api/queue_status.php') ?>', {cache:'no-store'});
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('reception-live-status').textContent =
+      (d.unregistered_rfids || 0) + ' unknown cards · ' + (d.appointments_today || 0) + ' appointments today';
+  } catch (_) {}
+}, 15000);
+</script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

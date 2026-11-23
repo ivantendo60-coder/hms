@@ -13,6 +13,7 @@ $s=[
 include __DIR__ . '/../../includes/header.php';
 ?>
 <h3><i class="bi bi-capsule text-primary"></i> Pharmacy Dashboard</h3>
+<div class="text-end mb-2"><span id="pharmacy-live-status" class="badge bg-primary-subtle text-primary-emphasis">Live queue</span></div>
 <div class="row g-3 my-3">
   <div class="col-md-3"><div class="card card-stat p-3"><small>Today</small><h2 class="text-success"><?= $s['today'] ?></h2></div></div>
   <div class="col-md-3"><div class="card card-stat p-3"><small>Dispensed</small><h2><?= $s['dispensed'] ?></h2></div></div>
@@ -23,4 +24,15 @@ include __DIR__ . '/../../includes/header.php';
 <div class="mt-3"><a class="btn btn-primary" href="<?= base_url('pages/scan.php') ?>"><i class="bi bi-broadcast"></i> Scan Card</a>
 <a class="btn btn-outline-primary" href="queue.php">Prescription Queue</a>
 <a class="btn btn-success" href="clearance.php">Payment Clearance</a></div>
+<script>
+setInterval(async () => {
+  try {
+    const r = await fetch('<?= base_url('api/queue_status.php') ?>', {cache:'no-store'});
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('pharmacy-live-status').textContent =
+      (d.prescriptions_pending || 0) + ' prescriptions · ' + (d.clearance_pending || 0) + ' clearances';
+  } catch (_) {}
+}, 15000);
+</script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

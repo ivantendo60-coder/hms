@@ -11,8 +11,14 @@
 
 (function(){
   const installButton = document.getElementById('install-app-button');
-  const helpDialog = document.getElementById('install-app-help');
+  const installStatus = document.getElementById('install-app-status');
   if (!installButton) return;
+
+  const setInstallStatus = (message) => {
+    if (!installStatus) return;
+    installStatus.textContent = message;
+    installStatus.classList.toggle('d-none', !message);
+  };
 
   if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
     installButton.classList.add('d-none');
@@ -23,24 +29,36 @@
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     installPrompt = event;
+    setInstallStatus('');
   });
 
   installButton.addEventListener('click', async () => {
-    if (!window.isSecureContext || !installPrompt) {
-      if (helpDialog && !helpDialog.open) helpDialog.showModal();
+    if (!installPrompt) {
+      setInstallStatus('Your browser has not offered an install prompt for this site yet.');
       return;
     }
 
-    installPrompt.prompt();
-    const choice = await installPrompt.userChoice;
+    const prompt = installPrompt;
     installPrompt = null;
-    if (choice.outcome === 'accepted') {
-      installButton.classList.add('d-none');
+
+    try {
+      await prompt.prompt();
+      const choice = await prompt.userChoice;
+      if (choice.outcome === 'accepted') {
+        installButton.classList.add('d-none');
+        setInstallStatus('myPatient HMS was installed.');
+      } else {
+        setInstallStatus('Installation was cancelled.');
+      }
+    } catch (error) {
+      setInstallStatus('Unable to open the browser install prompt.');
+      console.error('Unable to open the myPatient HMS install prompt:', error);
     }
   });
 
   window.addEventListener('appinstalled', () => {
     installButton.classList.add('d-none');
+    setInstallStatus('myPatient HMS was installed.');
   });
 })();
 
@@ -157,19 +175,28 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
     }
   };
 
-  const getBridgeUrl = (action) => {
+  const getBridgeRequest = (action) => {
     const base = el.dataset.bridgeEndpoint || '/api/rfid_bridge.php';
-    const params = new URLSearchParams({action});
+    const params = new URLSearchParams({
+      action,
+      csrf: el.dataset.csrf || ''
+    });
     if (portInput && portInput.value.trim()) {
       params.set('port', portInput.value.trim());
     }
-    return base + '?' + params.toString();
+    return {base, params};
   };
 
   const checkBridge = async () => {
     setBridgeMessage('Checking the Arduino bridge…');
     try {
-      const r = await fetch(getBridgeUrl('check'), {cache:'no-store'});
+      const request = getBridgeRequest('check');
+      const r = await fetch(request.base, {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: request.params
+      });
       const data = await r.json();
       if (data.ok) {
         setBridgeMessage(data.message || 'The bridge is responding.', 'success');
@@ -193,7 +220,13 @@ document.querySelectorAll('[data-password-toggle]').forEach((button) => {
   const startBridge = async () => {
     setBridgeMessage('Connecting the board…');
     try {
-      const r = await fetch(getBridgeUrl('start'), {cache:'no-store'});
+      const request = getBridgeRequest('start');
+      const r = await fetch(request.base, {
+        method: 'POST',
+        cache: 'no-store',
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: request.params
+      });
       const data = await r.json();
       if (data.ok) {
         setBridgeMessage(data.message || 'Bridge start command sent.', 'success');

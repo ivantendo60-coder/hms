@@ -14,6 +14,27 @@ $from = trim($_GET['from'] ?? '');
 $to   = trim($_GET['to'] ?? '');
 $q    = trim($_GET['q'] ?? '');  // legacy "any" field
 
+$patient_view_url = $role === 'receptionist'
+  ? base_url('pages/receptionist/patient_view.php')
+  : base_url('pages/patient/view.php');
+$exactUid = null;
+if (!$name && !$phone && !$from && !$to) {
+  if ($uid !== '' && $q === '') {
+    $exactUid = $uid;
+  } elseif ($q !== '' && $uid === '') {
+    $exactUid = strtoupper($q);
+  }
+}
+if ($exactUid !== null) {
+  $exactPatient = $pdo->prepare('SELECT rfid_uid FROM patients WHERE rfid_uid=?');
+  $exactPatient->execute([$exactUid]);
+  $matchedUid = $exactPatient->fetchColumn();
+  if ($matchedUid !== false) {
+    header('Location: ' . $patient_view_url . '?uid=' . urlencode($matchedUid));
+    exit;
+  }
+}
+
 $where = []; $args = [];
 if ($q)    { $where[]='(p.full_name LIKE ? OR p.rfid_uid LIKE ? OR p.phone LIKE ?)'; array_push($args,"%$q%","%$q%","%$q%"); }
 if ($name) { $where[]='p.full_name LIKE ?'; $args[]="%$name%"; }
@@ -36,9 +57,6 @@ $open_link = function($p) use ($role) {
 };
 
 $last_rfid_scan_id = (int)$pdo->query('SELECT COALESCE(MAX(id), 0) FROM rfid_scans')->fetchColumn();
-$patient_view_url = $role === 'receptionist'
-  ? base_url('pages/receptionist/patient_view.php')
-  : base_url('pages/patient/view.php');
 $page_title='Find Patient';
 include __DIR__ . '/../../includes/header.php';
 ?>
@@ -66,7 +84,7 @@ include __DIR__ . '/../../includes/header.php';
       Department filters: search by visit date to find your active patients quickly.
     <?php endif; ?>
   </div>
-  <div class="form-text mt-1" data-rfid-search-status role="status" aria-live="polite">Scan a patient card to retrieve patient information.</div>
+  <div class="form-text mt-1" data-rfid-search-status role="status" aria-live="polite">Scan a patient card or QR code to open patient information.</div>
 </form>
 
 <?php if ($rows): ?>

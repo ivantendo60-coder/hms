@@ -37,6 +37,28 @@ $patientReceiptsQuery->bindValue(1, $pageSize, PDO::PARAM_INT);
 $patientReceiptsQuery->bindValue(2, $receiptOffset, PDO::PARAM_INT);
 $patientReceiptsQuery->execute();
 $patientReceipts = $patientReceiptsQuery->fetchAll();
+
+if (($_GET['export'] ?? '') === 'csv') {
+  $allReceipts = $pdo->query("SELECT vp.created_at,p.full_name,p.rfid_uid,v.patient_type,vp.amount,vp.method,
+                                     vp.collection_point,vp.reference,u.name AS collected_by_name
+                              FROM visit_payments vp
+                              JOIN visits v ON v.id=vp.visit_id
+                              JOIN patients p ON p.id=v.patient_id
+                              LEFT JOIN users u ON u.id=vp.collected_by
+                              ORDER BY vp.created_at DESC")->fetchAll();
+  header('Content-Type: text/csv; charset=utf-8');
+  header('Content-Disposition: attachment; filename="patient_receipts.csv"');
+  $out = fopen('php://output', 'w');
+  fputcsv($out, ['Date', 'Patient', 'Card Number', 'Patient Type', 'Amount', 'Method', 'Collection Point', 'Reference', 'Received By']);
+  foreach ($allReceipts as $row) {
+    fputcsv($out, [
+      $row['created_at'], $row['full_name'], $row['rfid_uid'], $row['patient_type'],
+      $row['amount'], $row['method'], $row['collection_point'], $row['reference'], $row['collected_by_name']
+    ]);
+  }
+  fclose($out);
+  exit;
+}
 $pendingVisitsQuery = $pdo->prepare("SELECT v.id, v.visit_date, v.status, v.patient_type, v.pharmacy_cleared,
     p.full_name, p.rfid_uid, COALESCE(charges.total,0) AS total_charges, COALESCE(paid.total,0) AS total_paid
     FROM visits v
@@ -95,11 +117,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && ($_POST['action'] ?? '') === 'clear
 }
 
 $paymentProviders = payment_provider_options();
+$payoutAccounts = $pdo->query('SELECT * FROM payout_accounts ORDER BY is_default DESC, account_name ASC')->fetchAll();
 $history = get_staff_payment_history($pdo);
 
 include __DIR__ . '/../../includes/header.php';
 ?>
 <h3><i class="bi bi-wallet2 text-primary"></i> Financials &amp; Patient Payments</h3>
+<div class="text-end mb-2"><a class="btn btn-outline-success btn-sm" href="?export=csv"><i class="bi bi-download"></i> Export Receipts CSV</a></div>
 <div class="row g-3 my-3">
   <div class="col-md-4"><div class="card card-stat p-3"><small class="text-muted">Patient charges</small><h2>UGX <?= number_format((float)$billingTotals['total_charges'], 2) ?></h2></div></div>
   <div class="col-md-4"><div class="card card-stat p-3"><small class="text-muted">Payments received</small><h2 class="text-success">UGX <?= number_format((float)$billingTotals['total_paid'], 2) ?></h2></div></div>
@@ -201,6 +225,18 @@ include __DIR__ . '/../../includes/header.php';
               <?php endforeach; ?>
             </select>
           </div>
+          <div class="col-12">
+            <label class="form-label">Saved Payout Account (Recommended)</label>
+            <select name="payout_account_id" id="payout-account" class="form-select">
+              <option value="">Enter details manually</option>
+              <?php foreach($payoutAccounts as $account): ?>
+              <option value="<?= (int)$account['id'] ?>" data-provider="<?= e($account['provider']) ?>">
+                <?= e($account['account_name']) ?> — <?= e(ucfirst($account['provider'])) ?> — <?= e($account['account_number']) ?>
+                <?= $account['is_default'] ? ' (Default)' : '' ?>
+              </option>
+              <?php endforeach; ?>
+            </select>
+          </div>
           <div class="col-md-6" id="provider-detail-block">
             <label class="form-label">Mobile/Bank Details</label>
             <input name="phone" id="provider-phone" class="form-control" placeholder="Phone number">
@@ -243,13 +279,14 @@ include __DIR__ . '/../../includes/header.php';
       </div>
       <div class="table-responsive">
         <table class="table table-sm align-middle">
-          <thead><tr><th>Ref</th><th>Staff</th><th>Amount</th><th>Status</th></tr></thead>
+          <thead><tr><th>Ref</th><th>Staff</th><th>Amount</th><th>Payout Account</th><th>Status</th></tr></thead>
           <tbody>
           <?php foreach($history as $row): ?>
           <tr>
             <td><?= e($row['reference']) ?></td>
             <td><?= e($row['staff_name']) ?></td>
             <td>UGX <?= number_format($row['amount']) ?></td>
+            <td><?= e($row['payout_account_name'] ?: 'Manual') ?></td>
             <td>
               <div class="d-flex align-items-center gap-2">
                 <span class="badge bg-info text-dark"><?= e($row['status']) ?></span>
@@ -296,6 +333,7 @@ const provider = document.getElementById('provider');
 const phoneField = document.getElementById('provider-phone');
 const bankNameField = document.getElementById('bank-name');
 const accountNumberField = document.getElementById('account-number');
+const payoutAccount = document.getElementById('payout-account');
 function syncProviderFields(){
   const value = provider ? provider.value : '';
   if (value === 'bank') {
@@ -306,6 +344,32 @@ function syncProviderFields(){
     bankNameField.parentElement.style.display = 'none';
     accountNumberField.parentElement.style.display = 'none';
   }
+}
+function syncPayoutAccount(){
+  if (!payoutAccount || !payoutAccount.value) return;
+  const option = payoutAccount.options[payoutAccount.selectedIndex];
+  if (provider && option.dataset.provider) {
+    provider.value = option.dataset.provider;
+  }
+  syncProviderFields();
+  if (valueForAccountMode()) {
+    phoneField.parentElement.style.display = 'none';
+    bankNameField.parentElement.style.display = 'none';
+    accountNumberField.parentElement.style.display = 'none';
+  }
+}
+function valueForAccountMode(){
+  return !!(payoutAccount && payoutAccount.value);
+}
+if (payoutAccount) {
+  payoutAccount.addEventListener('change', () => {
+    if (!payoutAccount.value) {
+      phoneField.parentElement.style.display = '';
+      syncProviderFields();
+    } else {
+      syncPayoutAccount();
+    }
+  });
 }
 if (provider) {
   provider.addEventListener('change', syncProviderFields);

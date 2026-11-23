@@ -11,6 +11,7 @@ $s=[
 include __DIR__ . '/../../includes/header.php';
 ?>
 <h3><i class="bi bi-eyedropper text-primary"></i> Laboratory Dashboard</h3>
+<div class="text-end mb-2"><span id="lab-live-status" class="badge bg-primary-subtle text-primary-emphasis">Live queue</span></div>
 <div class="row g-3 my-3">
   <div class="col-md-4"><div class="card card-stat p-3"><small>Pending Tests</small><h2 class="text-warning"><?= $s['pending'] ?></h2></div></div>
   <div class="col-md-4"><div class="card card-stat p-3"><small>Tests Today</small><h2 class="text-success"><?= $s['today'] ?></h2></div></div>
@@ -18,4 +19,15 @@ include __DIR__ . '/../../includes/header.php';
 </div>
 <div class="mt-3"><a class="btn btn-primary" href="<?= base_url('pages/scan.php') ?>"><i class="bi bi-broadcast"></i> Scan Patient Card</a>
 <a class="btn btn-outline-primary" href="queue.php">Open Queue</a></div>
+<script>
+setInterval(async () => {
+  try {
+    const r = await fetch('<?= base_url('api/queue_status.php') ?>', {cache:'no-store'});
+    if (!r.ok) return;
+    const d = await r.json();
+    document.getElementById('lab-live-status').textContent =
+      (d.lab_pending || 0) + ' pending · ' + (d.lab_today || 0) + ' today';
+  } catch (_) {}
+}, 15000);
+</script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

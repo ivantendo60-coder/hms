@@ -10,9 +10,11 @@ import urllib.error
 
 import serial
 from serial.tools import list_ports
+import os
 
-URL = 'http://localhost/hms/api/rfid_ingest.php'
-STATION = 'reception'
+URL = os.environ.get('HMS_RFID_INGEST_URL', 'http://localhost/hms/api/rfid_ingest.php')
+STATION = os.environ.get('HMS_RFID_STATION', 'reception')
+RFID_TOKEN = os.environ.get('HMS_RFID_INGEST_TOKEN', '')
 
 KNOWN_BOARD_KEYWORDS = [
     'arduino', 'uno', 'mega', 'nano', 'esp32', 'esp8266',
@@ -101,6 +103,8 @@ def main():
                     for kind, body in payloads:
                         try:
                             headers = {'Content-Type': 'application/x-www-form-urlencoded'} if kind == 'form' else {'Content-Type': 'application/json'}
+                            if RFID_TOKEN:
+                                headers['X-RFID-Token'] = RFID_TOKEN
                             req = urllib.request.Request(URL, data=body, headers=headers, method='POST')
                             with urllib.request.urlopen(req, timeout=3) as response:
                                 print('POST', kind, uid, response.status, response.read().decode('utf-8', 'ignore'))

@@ -4,6 +4,16 @@
 require_once __DIR__ . '/../config/db.php';
 header('Content-Type: application/json');
 
+$requiredToken = trim((string)(getenv('HMS_RFID_INGEST_TOKEN') ?: ''));
+if ($requiredToken !== '') {
+    $submittedToken = trim((string)($_SERVER['HTTP_X_RFID_TOKEN'] ?? $_REQUEST['token'] ?? ''));
+    if (!hash_equals($requiredToken, $submittedToken)) {
+        http_response_code(401);
+        echo json_encode(['error' => 'unauthorized']);
+        exit;
+    }
+}
+
 function normalize_uid($value) {
     $value = trim((string) $value);
     if ($value === '') {

@@ -3,6 +3,7 @@
 require_once __DIR__ . '/../../includes/auth.php';
 require_once __DIR__ . '/../../config/db.php';
 require_once __DIR__ . '/../../includes/audit.php';
+require_once __DIR__ . '/../../includes/portal.php';
 require_role('receptionist');
 $uid = strtoupper(trim($_GET['uid']??''));
 $stmt = $pdo->prepare("SELECT * FROM patients WHERE rfid_uid=?"); $stmt->execute([$uid]); $p=$stmt->fetch();
@@ -20,6 +21,21 @@ if (isset($_GET['checkin'])) {
   header('Location: patient_view.php?uid='.urlencode($uid)); exit;
 }
 
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+  csrf_check();
+  $action = $_POST['action'] ?? '';
+  if ($action === 'issue_portal') {
+    $created = create_patient_portal_token($pdo, (int)$p['id'], (int)current_user()['id'], 7);
+    $_SESSION['flash_portal_url'] = base_url('pages/patient/portal.php') . '?token=' . rawurlencode($created['token']);
+  } elseif ($action === 'revoke_portal') {
+    $pdo->prepare("UPDATE patient_portal_tokens SET revoked_at=NOW()
+                   WHERE patient_id=? AND revoked_at IS NULL")->execute([(int)$p['id']]);
+    $_SESSION['flash_msg'] = 'Patient portal links revoked.';
+  }
+  header('Location: patient_view.php?uid=' . urlencode($uid));
+  exit;
+}
+
 $visits = $pdo->prepare("SELECT * FROM visits WHERE patient_id=? ORDER BY visit_date DESC"); $visits->execute([$p['id']]); $visits=$visits->fetchAll();
 $currentVisit = null;
 foreach ($visits as $visit) {
@@ -31,11 +47,18 @@ foreach ($visits as $visit) {
 $audit = fetch_audit($pdo, (int)$p['id']);
 $flashError = $_SESSION['flash_err'] ?? null;
 unset($_SESSION['flash_err']);
+$portalUrl = $_SESSION['flash_portal_url'] ?? null;
+unset($_SESSION['flash_portal_url']);
 $page_title=$p['full_name'];
 include __DIR__ . '/../../includes/header.php';
 ?>
 <?php if(!empty($_GET['new'])): ?><div class="alert alert-success"><i class="bi bi-check2-circle"></i> Patient registered and first visit started — they may now proceed to the doctor.</div><?php endif; ?>
 <?php if($flashError): ?><div class="alert alert-danger"><?= e($flashError) ?></div><?php endif; ?>
+<?php if ($portalUrl): ?>
+  <div class="alert alert-success"><strong>Temporary patient portal link:</strong>
+    <a href="<?= e($portalUrl) ?>" target="_blank"><?= e($portalUrl) ?></a>
+  </div>
+<?php endif; ?>
 
 <div class="card border-0 shadow-sm mb-3">
   <div class="card-body d-flex gap-4 align-items-center">
@@ -46,9 +69,20 @@ include __DIR__ . '/../../includes/header.php';
     </div>
     <div class="text-end">
       <span class="badge bg-info">Visits: <?= count($visits) ?></span>
+      <div id="patient-card-qr" class="mt-2 d-inline-block bg-white p-2 rounded shadow-sm" aria-label="Patient card QR"></div>
       <div class="mt-2">
         <a class="btn btn-success btn-sm" href="?uid=<?= urlencode($uid) ?>&checkin=1"><i class="bi bi-clipboard-check"></i> Check-in Visit</a>
         <a class="btn btn-outline-secondary btn-sm" href="edit_patient.php?id=<?= $p['id'] ?>"><i class="bi bi-pencil"></i> Edit</a>
+        <form method="post" class="d-inline">
+          <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+          <input type="hidden" name="action" value="issue_portal">
+          <button class="btn btn-outline-primary btn-sm"><i class="bi bi-person-badge"></i> Create Portal Link</button>
+        </form>
+        <form method="post" class="d-inline">
+          <input type="hidden" name="csrf" value="<?= csrf_token() ?>">
+          <input type="hidden" name="action" value="revoke_portal">
+          <button class="btn btn-outline-danger btn-sm"><i class="bi bi-x-octagon"></i> Revoke</button>
+        </form>
       </div>
     </div>
   </div>
@@ -125,4 +159,15 @@ include __DIR__ . '/../../includes/header.php';
     </table>
   </div>
 </div>
+<script src="<?= base_url('assets/js/qrcode.min.js?v=' . filemtime(__DIR__ . '/../../assets/js/qrcode.min.js')) ?>"></script>
+<script>
+  if (window.QRCode) {
+    new QRCode(document.getElementById('patient-card-qr'), {
+      text: <?= json_encode($p['rfid_uid']) ?>,
+      width: 110,
+      height: 110,
+      correctLevel: QRCode.CorrectLevel.M
+    });
+  }
+</script>
 <?php include __DIR__ . '/../../includes/footer.php'; ?>

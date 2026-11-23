@@ -92,6 +92,12 @@
     </section>
   </div>
 </main>
-<footer class="text-center text-muted py-3 small border-top">© {{ date('Y') }} myPatient HMS</footer>
+<footer class="site-footer text-center text-muted py-3 small border-top">
+  <div class="site-footer-brand">
+    <span>Powered by</span>
+    <img src="{{ asset('assets/img/irium-technologies.png') }}" alt="Irium Technologies">
+  </div>
+  <div class="site-footer-copyright">© {{ date('Y') }} myPatient HMS</div>
+</footer>
 </body>
 </html>

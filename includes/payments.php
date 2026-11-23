@@ -13,6 +13,7 @@ function ensure_staff_payment_columns(PDO $pdo): void {
         ['provider_reference', 'VARCHAR(100) NULL'],
         ['gateway_response', 'TEXT NULL'],
         ['processed_at', 'TIMESTAMP NULL'],
+        ['payout_account_id', 'INT NULL'],
     ];
 
     foreach ($expected as [$column, $definition]) {
@@ -21,6 +22,19 @@ function ensure_staff_payment_columns(PDO $pdo): void {
         } catch (PDOException $e) {
             $pdo->exec("ALTER TABLE staff_payments ADD COLUMN $column $definition");
         }
+    }
+
+    try {
+        $pdo->exec('ALTER TABLE staff_payments ADD INDEX idx_staff_payments_payout_account (payout_account_id)');
+    } catch (PDOException $e) {
+        // The index already exists or the database driver does not support duplicate reporting.
+    }
+
+    try {
+        $pdo->exec('ALTER TABLE staff_payments ADD CONSTRAINT fk_staff_payments_payout_account
+            FOREIGN KEY (payout_account_id) REFERENCES payout_accounts(id) ON DELETE SET NULL');
+    } catch (PDOException $e) {
+        // The foreign key already exists or payout_accounts is unavailable.
     }
 }
 
@@ -75,6 +89,11 @@ function update_payment_result(PDO $pdo, int $paymentId, string $status, ?string
 
 function create_staff_payment(PDO $pdo, array $data, int $initiatedBy): array {
     ensure_staff_payment_columns($pdo);
+    try {
+        $pdo->query("SELECT payout_account_id FROM staff_payments LIMIT 1");
+    } catch (PDOException $e) {
+        $pdo->exec('ALTER TABLE staff_payments ADD COLUMN payout_account_id INT NULL');
+    }
 
     $staffId = (int)($data['staff_id'] ?? 0);
     $amount = (float)($data['amount'] ?? 0);
@@ -92,29 +111,46 @@ function create_staff_payment(PDO $pdo, array $data, int $initiatedBy): array {
         return ['success' => false, 'message' => 'Staff member not found.'];
     }
 
+    $payoutAccountId = (int)($data['payout_account_id'] ?? 0);
     $providerAccount = '';
+    $selectedAccount = null;
+    if ($payoutAccountId > 0) {
+        $account = $pdo->prepare('SELECT * FROM payout_accounts WHERE id=?');
+        $account->execute([$payoutAccountId]);
+        $selectedAccount = $account->fetch();
+        if (!$selectedAccount) {
+            return ['success' => false, 'message' => 'Selected payout account was not found.'];
+        }
+        if (strtolower((string)$selectedAccount['provider']) !== $provider) {
+            return ['success' => false, 'message' => 'Selected payout account provider does not match the payment provider.'];
+        }
+    }
+
     if ($provider === 'bank') {
-        $bankName = trim((string)($data['bank_name'] ?? ''));
-        $accountNumber = trim((string)($data['account_number'] ?? ''));
+        $bankName = $selectedAccount ? trim((string)$selectedAccount['bank_name']) : trim((string)($data['bank_name'] ?? ''));
+        $accountNumber = $selectedAccount ? trim((string)$selectedAccount['account_number']) : trim((string)($data['account_number'] ?? ''));
         if ($bankName === '' || $accountNumber === '') {
             return ['success' => false, 'message' => 'Bank name and account number are required.'];
         }
         $providerAccount = $bankName . '|' . $accountNumber;
     } else {
-        $phone = trim((string)($data['phone'] ?? ''));
+        $phone = $selectedAccount
+            ? trim((string)($selectedAccount['phone_number'] ?: $selectedAccount['account_number']))
+            : trim((string)($data['phone'] ?? ''));
         if ($phone === '') {
             return ['success' => false, 'message' => 'Phone number is required for mobile money payouts.'];
         }
         $providerAccount = $phone;
     }
 
-    $stmt = $pdo->prepare('INSERT INTO staff_payments (staff_id, amount, currency, provider, provider_account, initiated_by, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?)');
+    $stmt = $pdo->prepare('INSERT INTO staff_payments (staff_id, amount, currency, provider, provider_account, payout_account_id, initiated_by, status, notes) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)');
     $stmt->execute([
         $staffId,
         number_format($amount, 2, '.', ''),
         'UGX',
         $provider,
         $providerAccount,
+        $payoutAccountId > 0 ? $payoutAccountId : null,
         $initiatedBy,
         'queued',
         $notes,
@@ -179,7 +215,11 @@ function retry_staff_payment(PDO $pdo, int $paymentId): array {
 }
 
 function get_staff_payment_history(PDO $pdo, ?int $staffId = null): array {
-    $sql = 'SELECT sp.*, u.name AS staff_name, u.role, u.email, u.phone FROM staff_payments sp JOIN users u ON u.id=sp.staff_id';
+    $sql = 'SELECT sp.*, u.name AS staff_name, u.role, u.email, u.phone,
+                   pa.account_name AS payout_account_name, pa.account_number AS payout_account_number
+            FROM staff_payments sp
+            JOIN users u ON u.id=sp.staff_id
+            LEFT JOIN payout_accounts pa ON pa.id=sp.payout_account_id';
     $params = [];
     if ($staffId) {
         $sql .= ' WHERE sp.staff_id=?';

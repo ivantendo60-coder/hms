@@ -15,11 +15,17 @@ else { $vs=$pdo->prepare("SELECT * FROM visits WHERE patient_id=? ORDER BY visit
   * { box-sizing: border-box; }
   body { max-width: 900px; margin: 0 auto; padding: 32px; color: #172033; font: 14px/1.5 Arial, sans-serif; }
   .report-header { display: flex; justify-content: space-between; align-items: flex-start; gap: 24px; padding-bottom: 16px; border-bottom: 2px solid #244c86; }
-  .report-header h1 { margin: 0; color: #17365f; font-size: 24px; }
+  .report-brand { display: flex; align-items: center; gap: 12px; }
+  .report-brand img { display: block; width: 64px; height: 64px; object-fit: contain; }
+  .report-brand h1 { margin: 0; color: #17365f; font-size: 24px; }
   .report-header p, .muted { margin: 4px 0 0; color: #667085; font-size: 12px; }
   .patient { margin: 20px 0; padding: 16px; border: 1px solid #d9e1eb; border-radius: 8px; background: #f7f9fc; }
+  .patient-card { display: flex; justify-content: space-between; align-items: center; gap: 20px; }
   .patient h2 { margin: 0 0 8px; font-size: 20px; }
   .patient p { margin: 3px 0; }
+  .patient-qr { flex: 0 0 auto; text-align: center; }
+  .patient-qr canvas, .patient-qr img { display: block; width: 110px; height: 110px; }
+  .patient-qr-label { margin-top: 4px; color: #667085; font-size: 11px; }
   .visit { margin-top: 20px; page-break-inside: avoid; }
   .visit h3 { margin: 0 0 12px; padding-bottom: 7px; color: #244c86; border-bottom: 1px solid #d9e1eb; font-size: 17px; }
   .section { margin: 12px 0; page-break-inside: avoid; }
@@ -42,17 +48,28 @@ else { $vs=$pdo->prepare("SELECT * FROM visits WHERE patient_id=? ORDER BY visit
 </style>
 </head><body onload="window.print()">
 <header class="report-header">
-  <div>
-    <h1>myPatient Hospital</h1>
-    <p>Medical Report</p>
+  <div class="report-brand">
+    <img src="<?= e(base_url('assets/img/logo.png')) ?>" alt="myPatient HMS Healthcare Logo">
+    <div>
+      <h1>myPatient Hospital</h1>
+      <p>Medical Report</p>
+    </div>
   </div>
   <div class="muted">Generated <?= date('Y-m-d H:i') ?></div>
 </header>
 <section class="patient">
-  <h2><?= e($p['full_name']) ?></h2>
-  <p><strong>Card Number:</strong> <code><?= e($p['rfid_uid']) ?></code></p>
-  <p><strong>Gender:</strong> <?= e($p['gender']) ?> &nbsp; <strong>Date of birth:</strong> <?= e($p['dob']) ?> &nbsp; <strong>Blood group:</strong> <?= e($p['blood_group']) ?></p>
-  <p><strong>Phone:</strong> <?= e($p['phone']) ?> &nbsp; <strong>Address:</strong> <?= e($p['address']) ?></p>
+  <div class="patient-card">
+    <div>
+      <h2><?= e($p['full_name']) ?></h2>
+      <p><strong>Card Number:</strong> <code><?= e($p['rfid_uid']) ?></code></p>
+      <p><strong>Gender:</strong> <?= e($p['gender']) ?> &nbsp; <strong>Date of birth:</strong> <?= e($p['dob']) ?> &nbsp; <strong>Blood group:</strong> <?= e($p['blood_group']) ?></p>
+      <p><strong>Phone:</strong> <?= e($p['phone']) ?> &nbsp; <strong>Address:</strong> <?= e($p['address']) ?></p>
+    </div>
+    <div class="patient-qr">
+      <div id="patient-card-qr" aria-label="QR code containing the patient card number"></div>
+      <div class="patient-qr-label">Scan to search by card number</div>
+    </div>
+  </div>
 </section>
 <?php foreach($visits as $v): if(!$v) continue;
   $dx=$pdo->prepare("SELECT d.*,u.name n FROM diagnoses d LEFT JOIN users u ON u.id=d.doctor_id WHERE visit_id=?"); $dx->execute([$v['id']]); $dx=$dx->fetchAll();
@@ -88,4 +105,13 @@ else { $vs=$pdo->prepare("SELECT * FROM visits WHERE patient_id=? ORDER BY visit
 <?php endforeach; ?>
 <footer class="report-footer">Confidential patient information · myPatient Hospital</footer>
 <button class="no-print" onclick="window.print()">Print / Save as PDF</button>
+<script src="<?= e(base_url('assets/js/qrcode.min.js?v=' . filemtime(__DIR__ . '/../../assets/js/qrcode.min.js'))) ?>"></script>
+<script>
+  new QRCode(document.getElementById('patient-card-qr'), {
+    text: <?= json_encode($p['rfid_uid']) ?>,
+    width: 110,
+    height: 110,
+    correctLevel: QRCode.CorrectLevel.M
+  });
+</script>
 </body></html>

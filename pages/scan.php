@@ -28,6 +28,7 @@ $unknown_redirect = $role==='receptionist' ? base_url('pages/receptionist/confir
         <div id="rfid-listener"
              data-endpoint="<?= base_url('api/rfid_last.php') ?>"
              data-bridge-endpoint="<?= base_url('api/rfid_bridge.php') ?>"
+             data-csrf="<?= e(csrf_token()) ?>"
              data-redirect-known="<?= $known_redirect ?>"
              data-redirect-unknown="<?= $unknown_redirect ?>"></div>
         <hr>

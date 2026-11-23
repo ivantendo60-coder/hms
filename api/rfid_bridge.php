@@ -1,8 +1,21 @@
 <?php
 header('Content-Type: application/json');
+require_once __DIR__ . '/../includes/auth.php';
+require_login();
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
+    echo json_encode(['ok' => false, 'message' => 'Bridge operations require POST.']);
+    exit;
+}
+csrf_check();
 
-$action = strtolower(trim($_REQUEST['action'] ?? 'check'));
-$port = trim($_REQUEST['port'] ?? '');
+$action = strtolower(trim($_POST['action'] ?? 'check'));
+$port = trim($_POST['port'] ?? '');
+if ($port !== '' && !preg_match('/^(COM[0-9]{1,3}|\/dev\/(?:tty(?:USB|ACM)[0-9]+|serial\/by-id\/[A-Za-z0-9._:-]+))$/i', $port)) {
+    http_response_code(400);
+    echo json_encode(['ok' => false, 'message' => 'Invalid serial port.']);
+    exit;
+}
 $baseDir = dirname(__DIR__);
 $scriptPath = $baseDir . DIRECTORY_SEPARATOR . 'arduino' . DIRECTORY_SEPARATOR . 'serial_bridge.py';
 $logPath = $baseDir . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . 'rfid_bridge.log';

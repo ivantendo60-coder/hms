@@ -30,13 +30,14 @@ close_session();
 <nav class="navbar navbar-expand-lg navbar-dark bg-primary shadow-sm sticky-top">
   <div class="container-fluid">
     <a class="navbar-brand d-flex align-items-center gap-2" href="<?= base_url('index.php') ?>">
-      <img src="<?= base_url('assets/img/logo.png') ?>" width="32" height="32" alt="logo">
+      <img src="<?= base_url('assets/img/logo.png') ?>" width="44" height="44" alt="">
       <strong>myPatient HMS</strong>
     </a>
     <div class="navbar-actions d-flex align-items-center gap-3 ms-auto text-white">
-      <button id="install-app-button" class="btn btn-outline-light btn-sm" type="button" aria-haspopup="dialog">
+      <button id="install-app-button" class="btn btn-outline-light btn-sm" type="button">
         <i class="bi bi-download"></i> Install app
       </button>
+      <span id="install-app-status" class="small text-white d-none" role="status" aria-live="polite"></span>
     <?php if ($showAuthenticatedHeader): ?>
       <span class="badge bg-light text-primary text-uppercase"><?= e($u['role']) ?></span>
       <div class="d-flex align-items-center gap-2">
@@ -51,21 +52,6 @@ close_session();
     </div>
   </div>
 </nav>
-<dialog id="install-app-help" class="pwa-install-dialog" aria-labelledby="install-app-title">
-  <div class="pwa-install-dialog-content">
-    <h2 id="install-app-title">Install myPatient HMS</h2>
-    <p>Install HMS from your browser to open it in its own app window and add a desktop shortcut.</p>
-    <ol>
-      <li>In Microsoft Edge, open <strong>Settings and more (…)</strong>, then <strong>Apps</strong> → <strong>Install this site as an app</strong>.</li>
-      <li>In Google Chrome, open <strong>Customize and control Chrome (⋮)</strong>, then choose <strong>Install myPatient HMS</strong> or <strong>Save and share</strong> → <strong>Install page as app</strong>.</li>
-      <li>Confirm installation and choose to create a desktop shortcut if offered.</li>
-    </ol>
-    <p class="pwa-install-note">Apache and MySQL must be running in XAMPP for this local installation to connect.</p>
-    <form method="dialog">
-      <button class="btn btn-primary" type="submit">Close</button>
-    </form>
-  </div>
-</dialog>
 <div class="<?= $showAuthenticatedHeader ? 'app-shell' : 'public-shell' ?>">
 <?php if ($showAuthenticatedHeader): include __DIR__ . '/sidebar.php'; endif; ?>
 <main class="<?= $showAuthenticatedHeader ? 'app-main' : ($isLoginPage ? 'auth-main' : 'public-main') ?>">

@@ -24,7 +24,7 @@ No Laravel database migrations are run during setup; the current SQL schema and 
 For deployment, configure `HMS_DB_HOST`, `HMS_DB_NAME`, `HMS_DB_USER`, and `HMS_DB_PASS` in the Apache/PHP environment and use a dedicated MySQL account with only the permissions the application needs. The built-in `root`/empty-password defaults are for local XAMPP development only.
 
 ## Install as a Desktop App
-On a supported, secure origin, open the HMS in Microsoft Edge or Google Chrome and select **Install app** in the top navigation. Confirm the browser's install prompt and choose the desktop shortcut option if offered. The installed app opens in its own window without normal browser tabs. If the install prompt is unavailable, the button shows the browser's manual installation steps.
+On a supported, secure origin, open the HMS in Microsoft Edge or Google Chrome and select **Install app** in the top navigation. The button opens the browser's native install prompt when the browser offers one. Confirm the prompt and choose the desktop shortcut option if offered. The installed app opens in its own window without normal browser tabs. If the browser has not offered an install prompt, the button remains visible and reports that status. Browsers require the user to confirm installation.
 
 For a local XAMPP installation, use `http://localhost/hms`; browsers treat localhost as a secure origin. Apache and MySQL must still be running in XAMPP, and the PWA requires a network connection to the HMS server. The service worker deliberately does not cache pages or API responses, so confidential patient information is not stored for offline use. For other devices or production deployments, serve HMS over HTTPS.
 
@@ -95,6 +95,21 @@ The **Scan RFID** page (any role) polls `/hms/api/rfid_last.php` every 1.5 s and
 ## Printing PDF Reports
 On any patient profile click **Print PDF** → opens a print-ready page → use the browser's "Save as PDF". Works on every modern browser, no external lib required.
 
+## Automated Legacy Smoke Checks
+Run the database-independent legacy smoke suite with:
+
+```powershell
+php tests/legacy_smoke_test.php
+```
+
+To include live MariaDB table and payout-link checks, provide the HMS application database password:
+
+```powershell
+$env:HMS_TEST_APP_PASS="<dedicated-hms-account-password>"; php tests/legacy_smoke_test.php
+```
+
+The suite validates billing amount and password policies, RFID bridge security markers, saved payout-account schema wiring, required workflow pages, and live core database tables. The password must belong to the dedicated `xampp_hms_db` account.
+
 ## Folder Layout
 ```
 hms/
@@ -120,6 +135,11 @@ hms/
 Built with PHP 8, Bootstrap 5.3, Bootstrap Icons, vanilla JS, MySQL.
 
 ## New Features
+- **Live department queue status** — reception, laboratory, and pharmacy dashboards poll the authenticated queue-status API every 15 seconds.
+- **Appointment scheduling** — reception, doctors, and admins can schedule, mark arrived, complete, or cancel patient appointments.
+- **CSV reporting** — hospital reports and patient receipts can be exported as CSV files.
+- **Patient identity QR** — reception patient profiles display a QR code encoding `HMS:UID:<RFID>` for fast card identity use.
+- **Temporary patient portal** — reception can create a seven-day, read-only patient portal link and revoke active links.
 - **Unknown-card confirmation flow** — receptionists land on a review screen (UID + station + reviewer) before registering a card. On confirm, the patient is created and a first visit is auto-opened. Existing installs: import `sql/upgrade.sql`.
 - **Fast patient search with department filters** — name, phone, RFID UID, and visit-date range. Receptionists get demographics-only filters; clinical roles also get visit-date filters and a visit count column.
 - **Patient audit log** — every create / update / clinical entry / photo upload writes a row (who, role, field, old → new, IP, timestamp). Visible on a new "Audit Log" tab on every patient profile.
